@@ -513,4 +513,751 @@
 
   <!-- 背包急救與甜點欄 -->
   <div class="inventory-bar">
-    <span style="font-size:
+    <span style="font-size: 12px; color: var(--gold); white-space: nowrap;">🎒 隨身背包：</span>
+    <div id="inv-list" style="display: flex; gap: 8px;"></div>
+  </div>
+
+  <!-- 核心事件與口說跟讀區 -->
+  <div class="main-panel">
+    <!-- 1. NPC 對話卡 (點讀 + 朗讀 + 跟讀集點) -->
+    <div class="retro-dialogue-card">
+      <div class="retro-header">
+        <div class="retro-speaker">
+          <span id="npc-avatar">👦</span>
+          <span id="npc-title">3年2班 Leo</span>
+        </div>
+        <div class="retro-tag-capsule" id="quest-tag">
+          <span>遺失文具 Lost & Found</span>
+          <span>💧</span>
+        </div>
+      </div>
+
+      <!-- NPC 單字晶片列表 -->
+      <div class="words-container" id="npc-words-box"></div>
+      <div class="translation-line" id="npc-zh-text">「老師，我的恐龍鉛筆盒不見了！下一節要上課該怎麼辦？」</div>
+
+      <!-- NPC 語音功能工具列 -->
+      <div class="sub-action-bar">
+        <button class="pill-btn" onclick="speakFullSentence('npc')">🔊 聽整句</button>
+        <button class="pill-btn" onclick="startKaraoke('npc')">🎵 逐字點讀 (Karaoke)</button>
+        <button class="pill-btn" id="btn-npc-shadow" onclick="startShadowing('npc')">🎙️ 跟讀這句集點 (+1⭐)</button>
+      </div>
+
+      <!-- 單字小辭典 (點字彈出) -->
+      <div class="word-dict-bubble" id="dict-bubble">
+        <div>
+          <b id="dict-word" style="color: var(--gold); font-size: 15px;">pencil case</b>
+          <span id="dict-ipa" style="color: #63b3ed; margin-left: 6px;">/ˈpen.səl ˌkeɪs/</span>
+          <span id="dict-zh" style="margin-left: 8px; color: #e2e8f0;">[名詞] 鉛筆盒</span>
+        </div>
+        <button class="pill-btn" onclick="speakCurrentWord()">🔊 再聽一次</button>
+      </div>
+    </div>
+
+    <!-- 2. 玩家回應卡 (開口說集點 + 體力推進) -->
+    <div class="response-card">
+      <div style="font-size: 12px; color: #cbd5e0; display:flex; justify-content:space-between;">
+        <span>🎯 大聲唸出溫暖回應（點選單字可聽發音）：</span>
+        <span style="color: var(--gold);" id="reward-tag">+2 ⭐ 點數</span>
+      </div>
+
+      <!-- 玩家回應單字晶片 -->
+      <div class="words-container" id="player-words-box"></div>
+      <div class="translation-line" id="player-zh-text" style="color: #90cdf4;">(別擔心，我們一起找找看吧！)</div>
+
+      <!-- 回應動作列 -->
+      <div class="action-btn-row">
+        <button class="btn-act btn-mic" id="btn-player-mic" onclick="startVoiceResponse()">
+          🎙️ 麥克風開口說
+        </button>
+        <button class="btn-act btn-tap" onclick="answerByTap()">
+          👆 點擊回答 (不方便開口)
+        </button>
+      </div>
+    </div>
+
+    <!-- 結果回饋 -->
+    <div id="feedback-banner" class="feedback-banner"></div>
+  </div>
+</div>
+
+<!-- 角色選擇 Modal -->
+<div class="modal-overlay" id="char-modal">
+  <div class="modal-box">
+    <h3 style="color: var(--gold); display:flex; justify-content:space-between;">
+      <span>🎭 選擇你的校園主角</span>
+      <button onclick="closeCharModal()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">✖</button>
+    </h3>
+    <div style="display:flex; flex-direction:column; gap:8px;" id="char-roster"></div>
+  </div>
+</div>
+
+<!-- 商店 Modal -->
+<div class="modal-overlay" id="shop-modal">
+  <div class="modal-box">
+    <h3 style="color: var(--gold); display:flex; justify-content:space-between;">
+      <span>🏪 學校福利社與生活小舖</span>
+      <button onclick="closeShopModal()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">✖</button>
+    </h3>
+    <p style="font-size: 13px; color: var(--text-sub);">使用口說賺來的 ⭐ 點數兌換補品吧！</p>
+    <div style="display:flex; flex-direction:column; gap:8px;" id="shop-items-container"></div>
+  </div>
+</div>
+
+<script>
+/* ========================================================
+   1. 遊戲資料庫 (角色、場景任務、烘焙與超市)
+======================================================== */
+const characters = [
+  { id: 'sam', name: '小森老師 (Teacher Sam)', tag: '輔導主任', perk: '口說集點 ⭐ +1', avatar: '🧑‍🏫', color: '#4299e1' },
+  { id: 'ellie', name: '小艾 (Ellie)', tag: '4年級好奇探險家', perk: '背包所有補品恢復 +30%', avatar: '🎒', color: '#ecc94b' },
+  { id: 'ray', name: '睿睿 (Ray)', tag: '5年級英文學霸', perk: '口語容錯率高、單字解讀加倍', avatar: '👓', color: '#48bb78' },
+  { id: 'mia', name: '芮芮 (Mia)', tag: '3年級小甜點師', perk: '烘焙手作體力翻倍 + 回家治癒', avatar: '🎨', color: '#ed64a6' },
+  { id: 'robo', name: '酷博 (Robo-C)', tag: '校園智慧小助教', perk: '自帶發音超慢速與備用電池', avatar: '🤖', color: '#9f7aea' }
+];
+
+const quests = [
+  {
+    scene: 'classroom',
+    avatar: '👦',
+    speaker: '3年2班 Leo',
+    tag: '遺失文具 Lost & Found 💧',
+    npcEn: "Teacher, I lost my pencil case! What should I do?",
+    npcZh: "老師，我的恐龍鉛筆盒不見了！下一節要上課該怎麼辦？",
+    playerEn: "Don't worry, let's find it together!",
+    playerZh: "別擔心，我們一起找找看吧！",
+    cost: 10,
+    points: 2
+  },
+  {
+    scene: 'supermarket',
+    avatar: '🛒',
+    speaker: '超市店員 Uncle Bob',
+    tag: '超市採買 Shopping Quest 🍪',
+    npcEn: "Where can I help you find the baking flour and chocolate?",
+    npcZh: "需要我幫你找做餅乾的麵粉和巧克力豆在哪一區嗎？",
+    playerEn: "Yes, please! Which aisle has the fresh eggs and butter?",
+    playerZh: "太感謝了！請問新鮮雞蛋和奶油在哪一條走道？",
+    cost: 15,
+    points: 3,
+    bakingReward: { id: 'flour_pack', name: '🌾 烘焙材料包', count: 1, heal: 20, desc: '低筋麵粉與奶油' }
+  },
+  {
+    scene: 'bakery',
+    avatar: '🧁',
+    speaker: '烘焙小助手 Nina',
+    tag: '烘焙手作 Baking Fun 🍰',
+    npcEn: "The cookie dough is ready! Should we preheat the oven now?",
+    npcZh: "巧克力餅乾麵糰揉好囉！我們現在要先把烤箱預熱嗎？",
+    playerEn: "Yes! Set the oven to 180 degrees and bake for 15 minutes.",
+    playerZh: "沒錯！將烤箱轉到 180 度，烤 15 分鐘！",
+    cost: 10,
+    points: 4,
+    bakingReward: { id: 'choco_cookie', name: '🍪 熱騰騰巧克餅乾', count: 2, heal: 35, desc: '親手手作！香甜酥脆' }
+  },
+  {
+    scene: 'classroom',
+    avatar: '👧',
+    speaker: '同學 Emma',
+    tag: '同儕分享 Friendship ⚽',
+    npcEn: "The recess bell is ringing! Do you want to play tag with us?",
+    npcZh: "大下課鐘聲響了！你要跟我們一起去操場玩鬼抓人嗎？",
+    playerEn: "I'd love to! Wait for me to grab my water bottle.",
+    playerZh: "好呀！等我拿一下水壺！",
+    cost: 15,
+    points: 2
+  },
+  {
+    scene: 'clinic',
+    avatar: '👩‍⚕️',
+    speaker: '保健室護理師 Miss Lin',
+    tag: '身體照護 Health Care 🩹',
+    npcEn: "You look a little exhausted today. Would you like to lie down?",
+    npcZh: "你看起來有點疲倦呢，要在病床上躺著休息一下嗎？",
+    playerEn: "May I rest for ten minutes and drink some warm water?",
+    playerZh: "我可以喝點溫水並休息十分鐘嗎？謝謝護理師。",
+    cost: 5,
+    points: 3
+  },
+  {
+    scene: 'home',
+    avatar: '🐶',
+    speaker: '妹妹與柴柴',
+    tag: '放學回家 Welcome Home 🏡',
+    npcEn: "You worked hard at school today! Mom made hot noodle soup.",
+    npcZh: "今天在學校辛苦了！媽媽煮了香噴噴的熱麵條喔！",
+    playerEn: "Thank you! I had a wonderful day with my friends.",
+    playerZh: "謝謝！我今天和朋友們度過了很棒的一天！",
+    cost: 10,
+    points: 3
+  }
+];
+
+// 單字辭典小資料庫 (國小 3-5 年級高頻詞彙)
+const dictionary = {
+  "teacher": { ipa: "/ˈtiː.tʃər/", zh: "[名詞] 老師" },
+  "lost": { ipa: "/lɒst/", zh: "[動詞] 弄丟了 (lose過去式)" },
+  "pencil": { ipa: "/ˈpen.səl/", zh: "[名詞] 鉛筆" },
+  "case": { ipa: "/keɪs/", zh: "[名詞] 盒子 / 盒袋" },
+  "should": { ipa: "/ʃʊd/", zh: "[助動詞] 應該 / 該如何" },
+  "worry": { ipa: "/ˈwʌr.i/", zh: "[動詞] 擔心 / 焦慮" },
+  "together": { ipa: "/təˈɡeð.ər/", zh: "[副詞] 一起 / 共同" },
+  "baking": { ipa: "/ˈbeɪ.kɪŋ/", zh: "[名詞] 烘焙 / 烤製" },
+  "flour": { ipa: "/flaʊər/", zh: "[名詞] 麵粉" },
+  "chocolate": { ipa: "/ˈtʃɒk.lət/", zh: "[名詞] 巧克力" },
+  "fresh": { ipa: "/freʃ/", zh: "[形容詞] 新鮮的" },
+  "butter": { ipa: "/ˈbʌt.ər/", zh: "[名詞] 奶油" },
+  "aisle": { ipa: "/aɪl/", zh: "[名詞] (超市) 走道" },
+  "dough": { ipa: "/dəʊ/", zh: "[名詞] 生麵糰" },
+  "preheat": { ipa: "/ˌpriːˈhiːt/", zh: "[動詞] 預熱 (烤箱)" },
+  "oven": { ipa: "/ˈʌv.ən/", zh: "[名詞] 烤箱" },
+  "degrees": { ipa: "/dɪˈɡriːz/", zh: "[名詞] 度數 (溫度)" },
+  "minutes": { ipa: "/ˈmɪn.ɪts/", zh: "[名詞] 分鐘" },
+  "recess": { ipa: "/ˈriː.ses/", zh: "[名詞] 下課時間" },
+  "bottle": { ipa: "/ˈbɒt.əl/", zh: "[名詞] 瓶子 / 水壺" },
+  "exhausted": { ipa: "/ɪɡˈzɔː.stɪd/", zh: "[形容詞] 筋疲力盡的" },
+  "wonderful": { ipa: "/ˈwʌn.də.fəl/", zh: "[形容詞] 極好的 / 精彩的" }
+};
+
+/* 遊戲狀態 */
+const state = {
+  currentChar: characters[0],
+  currentStyle: 'pixel', // pixel, storybook, anime, cyber
+  currentScene: 'classroom',
+  hp: 85,
+  maxHp: 100,
+  points: 5,
+  timeStep: 0,
+  times: ["08:30 AM", "10:15 AM", "12:10 PM", "02:30 PM", "04:20 PM", "06:15 PM"],
+  questIdx: 0,
+  selectedWord: null,
+  inventory: [
+    { id: 'patch', name: '🩹 止痛OK繃', count: 2, heal: 30, desc: '消除疲勞' },
+    { id: 'choco', name: '🍫 提神黑巧克力', count: 1, heal: 15, desc: '補充糖分' }
+  ]
+};
+
+/* ========================================================
+   2. Canvas 多風格繪圖引擎 (像素 / 繪本 / 動漫 / 賽博)
+======================================================== */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+function renderSceneCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 背景地圖渲染
+  if (state.currentStyle === 'pixel') {
+    drawPixelStyle();
+  } else if (state.currentStyle === 'storybook') {
+    drawStorybookStyle();
+  } else if (state.currentStyle === 'anime') {
+    drawAnimeStyle();
+  } else if (state.currentStyle === 'cyber') {
+    drawCyberStyle();
+  }
+
+  // 繪製主角在畫面中央
+  drawCharacterAvatar();
+}
+
+/* 1. 復古像素風 */
+function drawPixelStyle() {
+  if (state.currentScene === 'supermarket') {
+    // 超市走道
+    ctx.fillStyle = '#cbd5e0'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#4a5568'; ctx.fillRect(40, 60, 160, 240); // 貨架A
+    ctx.fillStyle = '#4a5568'; ctx.fillRect(440, 60, 160, 240); // 貨架B
+    // 商品色塊
+    ctx.fillStyle = '#e53e3e'; ctx.fillRect(60, 80, 120, 20);
+    ctx.fillStyle = '#f6e05e'; ctx.fillRect(60, 120, 120, 20);
+    ctx.fillStyle = '#48bb78'; ctx.fillRect(460, 80, 120, 20);
+    ctx.fillStyle = '#ed8936'; ctx.fillRect(460, 140, 120, 20);
+  } else if (state.currentScene === 'bakery') {
+    // 烘焙廚房 (磁磚與烤箱)
+    ctx.fillStyle = '#f7fafc'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 棋盤格
+    for(let x=0; x<canvas.width; x+=32) {
+      for(let y=0; y<canvas.height; y+=32) {
+        if((x+y)%64 === 0) { ctx.fillStyle = '#edf2f7'; ctx.fillRect(x, y, 32, 32); }
+      }
+    }
+    // 烘焙大烤箱
+    ctx.fillStyle = '#2d3748'; ctx.fillRect(450, 100, 140, 180);
+    ctx.fillStyle = '#dd6b20'; ctx.fillRect(470, 140, 100, 90); // 溫暖烤箱火光
+    // 揉麵大料理台
+    ctx.fillStyle = '#b7791f'; ctx.fillRect(60, 180, 220, 90);
+    ctx.fillStyle = '#fff'; ctx.fillRect(100, 195, 45, 20); // 麵粉堆
+  } else if (state.currentScene === 'home') {
+    // 溫暖木質與地毯
+    ctx.fillStyle = '#b77943'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#9b2c2c'; ctx.fillRect(160, 160, 320, 140); // 暖紅大沙發
+    ctx.fillStyle = '#742a2a'; ctx.fillRect(250, 40, 140, 70);   // 壁爐
+  } else {
+    // 預設教室與輔導室 (木紋與黑板)
+    ctx.fillStyle = '#9c5f2b'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#22543d'; ctx.fillRect(180, 20, 280, 80);  // 綠黑板
+    ctx.fillStyle = '#4a5568'; ctx.fillRect(60, 160, 130, 90);   // 課桌
+    ctx.fillStyle = '#4a5568'; ctx.fillRect(450, 160, 130, 90);  // 課桌
+  }
+}
+
+/* 2. 暖心手繪繪本風 */
+function drawStorybookStyle() {
+  ctx.fillStyle = '#fefcbf'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // 水彩漸層光暈
+  let grad = ctx.createRadialGradient(320, 180, 30, 320, 180, 300);
+  grad.addColorStop(0, 'rgba(255, 245, 245, 0.9)');
+  grad.addColorStop(1, 'rgba(254, 215, 226, 0.7)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 柔和圓角傢俱與漂浮雲朵
+  ctx.fillStyle = '#f6ad55';
+  ctx.beginPath();
+  ctx.arc(120, 200, 60, 0, Math.PI * 2);
+  ctx.arc(520, 200, 60, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/* 3. 日系扁平動漫風 */
+function drawAnimeStyle() {
+  ctx.fillStyle = '#ebf8ff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // 窗戶透射晨光
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.beginPath();
+  ctx.moveTo(80, 0); ctx.lineTo(240, 0); ctx.lineTo(380, 360); ctx.lineTo(160, 360);
+  ctx.fill();
+  // 現代簡約辦公桌
+  ctx.fillStyle = '#2b6cb0'; ctx.fillRect(180, 220, 280, 70);
+  ctx.fillStyle = '#e2e8f0'; ctx.fillRect(200, 200, 50, 20); // 筆電
+}
+
+/* 4. 賽博科技風 */
+function drawCyberStyle() {
+  ctx.fillStyle = '#0a0f1d'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // 霓虹網格線條
+  ctx.strokeStyle = '#00f2fe';
+  ctx.lineWidth = 1;
+  for(let y=180; y<canvas.height; y+=25) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+  // 全息光圈
+  ctx.strokeStyle = '#9f7aea';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(320, 260, 120, 40, 0, 0, Math.PI*2);
+  ctx.stroke();
+}
+
+/* 繪製動態主角 */
+function drawCharacterAvatar() {
+  const c = state.currentChar;
+  const x = 320;
+  const y = 220;
+
+  if (state.currentStyle === 'pixel') {
+    // 像素方塊人
+    ctx.fillStyle = c.color;
+    ctx.fillRect(x - 16, y - 40, 32, 28); // 頭
+    ctx.fillStyle = '#1a202c';
+    ctx.fillRect(x - 10, y - 30, 6, 6);   // 左眼
+    ctx.fillRect(x + 4, y - 30, 6, 6);    // 右眼
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillRect(x - 20, y - 12, 40, 35); // 身體
+    ctx.fillStyle = '#4a5568';
+    ctx.fillRect(x - 14, y + 23, 10, 18); // 腿
+    ctx.fillRect(x + 4, y + 23, 10, 18);
+  } else {
+    // 向量柔和圓形主角
+    ctx.fillStyle = c.color;
+    ctx.beginPath(); ctx.arc(x, y - 20, 22, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x, y + 22, 28, 0, Math.PI*2); ctx.fill();
+    // 眼睛與微笑
+    ctx.fillStyle = '#1a202c';
+    ctx.beginPath(); ctx.arc(x - 7, y - 22, 3, 0, Math.PI*2); ctx.arc(x + 7, y - 22, 3, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+/* ========================================================
+   3. 雙向互動單字晶片卡 (逐字朗讀、音標辭典、卡拉OK)
+======================================================== */
+function renderQuestWords() {
+  const q = quests[state.questIdx % quests.length];
+  
+  // 更新標頭與情境卡
+  document.getElementById('npc-avatar').innerText = q.avatar;
+  document.getElementById('npc-title').innerText = q.speaker;
+  document.getElementById('quest-tag').innerHTML = `<span>${q.tag}</span>`;
+  document.getElementById('npc-zh-text').innerText = `「${q.npcZh}」`;
+  document.getElementById('player-zh-text').innerText = `(${q.playerZh})`;
+  document.getElementById('reward-tag').innerText = `+${q.points} ⭐ 點數`;
+
+  // 1. 生成 NPC 逐字晶片
+  const npcBox = document.getElementById('npc-words-box');
+  npcBox.innerHTML = '';
+  const npcWords = q.npcEn.split(' ');
+  npcWords.forEach((rawWord, idx) => {
+    const cleanWord = rawWord.replace(/[^\w']/g, "").toLowerCase();
+    const btn = document.createElement('button');
+    btn.className = 'word-btn';
+    btn.id = `npc-word-${idx}`;
+    btn.innerText = rawWord;
+    btn.onclick = () => onWordClick(cleanWord, rawWord);
+    npcBox.appendChild(btn);
+  });
+
+  // 2. 生成 玩家 逐字晶片
+  const playerBox = document.getElementById('player-words-box');
+  playerBox.innerHTML = '';
+  const playerWords = q.playerEn.split(' ');
+  playerWords.forEach((rawWord, idx) => {
+    const cleanWord = rawWord.replace(/[^\w']/g, "").toLowerCase();
+    const btn = document.createElement('button');
+    btn.className = 'word-btn';
+    btn.id = `player-word-${idx}`;
+    btn.innerText = rawWord;
+    btn.onclick = () => onWordClick(cleanWord, rawWord);
+    playerBox.appendChild(btn);
+  });
+
+  hideFeedback();
+}
+
+/* 點擊單字發音與辭典展開 */
+function onWordClick(cleanWord, rawWord) {
+  state.selectedWord = rawWord;
+  speakText(rawWord, 0.85);
+
+  const dictBubble = document.getElementById('dict-bubble');
+  const dictData = dictionary[cleanWord];
+
+  document.getElementById('dict-word').innerText = rawWord;
+  if (dictData) {
+    document.getElementById('dict-ipa').innerText = dictData.ipa;
+    document.getElementById('dict-zh').innerText = dictData.zh;
+  } else {
+    document.getElementById('dict-ipa').innerText = '';
+    document.getElementById('dict-zh').innerText = '[生活常見詞彙] 點擊隨時大聲朗讀！';
+  }
+  dictBubble.style.display = 'flex';
+}
+
+function speakCurrentWord() {
+  if (state.selectedWord) speakText(state.selectedWord, 0.8);
+}
+
+/* 原生 Web Speech 朗讀引擎 */
+function speakText(text, rate = 0.85) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    // 若主角是酷博，語速更清晰
+    utterance.rate = state.currentChar.id === 'robo' ? 0.75 : rate;
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+function speakFullSentence(target) {
+  const q = quests[state.questIdx % quests.length];
+  speakText(target === 'npc' ? q.npcEn : q.playerEn);
+}
+
+/* 🎵 Karaoke 逐字點讀導讀模式 */
+let karaokeTimer = null;
+function startKaraoke(target) {
+  clearTimeout(karaokeTimer);
+  const q = quests[state.questIdx % quests.length];
+  const words = (target === 'npc' ? q.npcEn : q.playerEn).split(' ');
+  let idx = 0;
+
+  function highlightNext() {
+    // 移除前一個的高亮
+    document.querySelectorAll('.word-btn').forEach(b => b.classList.remove('highlight'));
+    if (idx < words.length) {
+      const btn = document.getElementById(`${target}-word-${idx}`);
+      if (btn) {
+        btn.classList.add('highlight');
+        speakText(words[idx], 0.9);
+      }
+      idx++;
+      karaokeTimer = setTimeout(highlightNext, 650);
+    } else {
+      setTimeout(() => {
+        document.querySelectorAll('.word-btn').forEach(b => b.classList.remove('highlight'));
+        speakText(target === 'npc' ? q.npcEn : q.playerEn, 0.85);
+      }, 500);
+    }
+  }
+  highlightNext();
+}
+
+/* ========================================================
+   4. 語音辨識、跟讀集點與通關 (Web Speech API)
+======================================================== */
+/* NPC 句子跟讀集點 (Shadowing) */
+function startShadowing(target) {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    alert("瀏覽器未支援語音辨識，已自動為你示範標準發音！");
+    speakFullSentence(target);
+    return;
+  }
+
+  const rec = new SpeechRec();
+  rec.lang = 'en-US';
+  rec.interimResults = false;
+
+  const btn = document.getElementById('btn-npc-shadow');
+  btn.classList.add('recording');
+  btn.innerText = "🎧 正在跟讀中...";
+
+  rec.onresult = (e) => {
+    btn.classList.remove('recording');
+    btn.innerText = "🎙️ 跟讀這句集點 (+1⭐)";
+    const spoken = e.results[0][0].transcript.toLowerCase();
+    
+    // 國小生鼓勵原則：只要開口抓到 1-2 個關鍵字就通過！
+    state.points += 1;
+    updateUI();
+    showFeedback(`🎉 讚！跟讀挑戰成功！辨識到：「${spoken}」，額外收集到 ⭐ +1 點！`, true);
+  };
+
+  rec.onerror = () => {
+    btn.classList.remove('recording');
+    btn.innerText = "🎙️ 跟讀這句集點 (+1⭐)";
+    showFeedback("麥克風沒收到聲音，請試著靠進麥克風大聲念出來喔！", false);
+  };
+
+  rec.start();
+}
+
+/* 玩家麥克風開口作答 */
+function startVoiceResponse() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    answerByTap();
+    return;
+  }
+
+  const rec = new SpeechRec();
+  rec.lang = 'en-US';
+  const micBtn = document.getElementById('btn-player-mic');
+  micBtn.innerText = "🎧 聆聽你的好聲音中...";
+
+  rec.onresult = (e) => {
+    micBtn.innerText = "🎙️ 麥克風開口說";
+    const spoken = e.results[0][0].transcript;
+    passCurrentQuest(`🌟 太棒了！口說評分 A+！大聲說出：「${spoken}」`);
+  };
+
+  rec.onerror = () => {
+    micBtn.innerText = "🎙️ 麥克風開口說";
+    showFeedback("未偵測到聲音，可以再試一次或點選右方綠色按鈕回答！", false);
+  };
+
+  rec.start();
+}
+
+function answerByTap() {
+  speakFullSentence('player');
+  passCurrentQuest("👍 認真練習！順利完成英語回應任務！");
+}
+
+/* 通關結算 (獎勵、做餅乾材料、時間推進) */
+function passCurrentQuest(msg) {
+  const q = quests[state.questIdx % quests.length];
+  let gainedPoints = q.points;
+  if (state.currentChar.id === 'sam') gainedPoints += 1; // 小森老師天賦
+
+  state.points += gainedPoints;
+  state.hp = Math.max(15, state.hp - q.cost);
+  state.timeStep++;
+
+  // 若該關卡有烘焙材料獎勵 (例如超市採買材料包、烘焙坊烤出餅乾)
+  if (q.bakingReward) {
+    const existing = state.inventory.find(i => i.id === q.bakingReward.id);
+    if (existing) existing.count += q.bakingReward.count;
+    else state.inventory.push({ ...q.bakingReward });
+    msg += ` 並獲得了【${q.bakingReward.name}】！`;
+  }
+
+  showFeedback(`${msg} (獲得 ⭐ +${gainedPoints} 點數)`, true);
+  updateUI();
+
+  // 切換下一題
+  state.questIdx++;
+  setTimeout(() => {
+    renderQuestWords();
+    const nextQ = quests[state.questIdx % quests.length];
+    switchScene(nextQ.scene, false); // 自動帶到下一任務場景
+  }, 1900);
+}
+
+function showFeedback(text, isSuccess) {
+  const fb = document.getElementById('feedback-banner');
+  fb.style.display = 'block';
+  fb.className = `feedback-banner ${isSuccess ? 'success' : 'warn'}`;
+  fb.innerText = text;
+}
+function hideFeedback() {
+  document.getElementById('feedback-banner').style.display = 'none';
+}
+
+/* ========================================================
+   5. 場景切換、角色切換與背包系統
+======================================================== */
+function switchScene(scId, manual = true) {
+  state.currentScene = scId;
+  const badges = {
+    classroom: '🏫 教室走廊 (Classroom)',
+    supermarket: '🛒 陽光生活超市 (Supermarket)',
+    bakery: '🧁 甜蜜烘焙坊 (Bakery & Kitchen)',
+    office: '🏢 輔導諮商室 (Office)',
+    clinic: '🏥 學校保健室 (Health Clinic)',
+    home: '🏡 溫馨的家 (Home & Living)'
+  };
+  document.getElementById('scene-badge').innerText = badges[scId] || '🏫 校園場景';
+
+  document.querySelectorAll('.map-nav .nav-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById('btn-scene-' + scId);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // 場景自然休息機制
+  if (manual) {
+    if (scId === 'home') {
+      let heal = state.currentChar.id === 'mia' ? 20 : 10;
+      healHP(heal, `回到溫暖的家喝熱牛奶，體力 +${heal}！`);
+    } else if (scId === 'clinic') {
+      healHP(15, "在保健室稍微閉目養神，體力 +15！");
+    }
+  }
+
+  renderSceneCanvas();
+}
+
+function setStyle(st) {
+  state.currentStyle = st;
+  document.querySelectorAll('.btn-style').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderSceneCanvas();
+}
+
+/* 背包渲染與使用物品恢復體力 */
+function renderInventory() {
+  const list = document.getElementById('inv-list');
+  list.innerHTML = '';
+  state.inventory.forEach((item, idx) => {
+    if (item.count <= 0) return;
+    const chip = document.createElement('div');
+    chip.className = 'item-chip';
+    chip.innerHTML = `<span>${item.name}</span><b style="color:var(--gold);">x${item.count}</b>`;
+    chip.title = `${item.desc} (恢復體力 +${item.heal})`;
+    chip.onclick = () => useItem(idx);
+    list.appendChild(chip);
+  });
+}
+
+function useItem(idx) {
+  const item = state.inventory[idx];
+  if (!item || item.count <= 0) return;
+  item.count--;
+  
+  let healVal = item.heal;
+  if (state.currentChar.id === 'ellie') healVal = Math.round(healVal * 1.3); // 小艾天賦
+
+  healHP(healVal, `吃了【${item.name}】！體力恢復 +${healVal} 點！`);
+}
+
+function healHP(amount, msg) {
+  state.hp = Math.min(state.maxHp, state.hp + amount);
+  showFeedback(msg, true);
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById('hp-bar').style.width = state.hp + '%';
+  document.getElementById('txt-hp').innerText = state.hp + '%';
+  document.getElementById('txt-points').innerText = state.points;
+  document.getElementById('txt-time').innerText = state.times[state.timeStep % state.times.length];
+  document.getElementById('char-badge').innerText = `${state.currentChar.avatar} ${state.currentChar.name} (${state.currentChar.perk})`;
+
+  renderInventory();
+  renderSceneCanvas();
+}
+
+/* ========================================================
+   6. 角色選擇與商店 Modal 模組
+======================================================== */
+function openCharModal() {
+  const roster = document.getElementById('char-roster');
+  roster.innerHTML = '';
+  characters.forEach(c => {
+    const card = document.createElement('div');
+    card.className = `char-card ${c.id === state.currentChar.id ? 'selected' : ''}`;
+    card.innerHTML = `
+      <div style="display:flex; gap:10px; align-items:center;">
+        <span style="font-size:24px;">${c.avatar}</span>
+        <div>
+          <b>${c.name}</b>
+          <div style="font-size:12px; color:var(--text-sub);">${c.tag}</div>
+          <div style="font-size:12px; color:var(--gold);">天賦：${c.perk}</div>
+        </div>
+      </div>
+      <button class="pill-btn" style="background:${c.color}; color:#fff;">選擇</button>
+    `;
+    card.onclick = () => {
+      state.currentChar = c;
+      closeCharModal();
+      updateUI();
+    };
+    roster.appendChild(card);
+  });
+  document.getElementById('char-modal').classList.add('open');
+}
+function closeCharModal() { document.getElementById('char-modal').classList.remove('open'); }
+
+function openShopModal() {
+  const shop = document.getElementById('shop-items-container');
+  shop.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#243042; padding:8px 12px; border-radius:6px;">
+      <div><b>🩹 元氣止痛OK繃</b><div style="font-size:12px; color:#a0aec0;">恢復體力 +30</div></div>
+      <button class="pill-btn" onclick="buyShopItem('patch', 2)">⭐ 2 點兌換</button>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#243042; padding:8px 12px; border-radius:6px;">
+      <div><b>🍫 能量黑巧克力</b><div style="font-size:12px; color:#a0aec0;">恢復體力 +15</div></div>
+      <button class="pill-btn" onclick="buyShopItem('choco', 1)">⭐ 1 點兌換</button>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#243042; padding:8px 12px; border-radius:6px;">
+      <div><b>🥛 媽媽特調溫熱牛奶</b><div style="font-size:12px; color:#a0aec0;">全面恢復體力 +50</div></div>
+      <button class="pill-btn" onclick="buyShopItem('milk', 3)">⭐ 3 點兌換</button>
+    </div>
+  `;
+  document.getElementById('shop-modal').classList.add('open');
+}
+function closeShopModal() { document.getElementById('shop-modal').classList.remove('open'); }
+
+function buyShopItem(id, cost) {
+  if (state.points < cost) {
+    alert("⭐ 點數不足！多跟同學開口互動集點吧！");
+    return;
+  }
+  state.points -= cost;
+  if (id === 'patch') state.inventory.push({ id: 'patch', name: '🩹 止痛OK繃', count: 1, heal: 30, desc: '消除疲勞' });
+  if (id === 'choco') state.inventory.push({ id: 'choco', name: '🍫 提神黑巧克力', count: 1, heal: 15, desc: '補充糖分' });
+  if (id === 'milk') state.inventory.push({ id: 'milk', name: '🥛 特調熱牛奶', count: 1, heal: 50, desc: '精力完全充沛' });
+  alert("兌換成功！已放進隨身背包！");
+  updateUI();
+}
+
+/* 初始化遊戲 */
+window.onload = () => {
+  renderQuestWords();
+  updateUI();
+};
+</script>
+
+</body>
+</html>
