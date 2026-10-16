@@ -1,133 +1,516 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>校園生活大冒險：今天也不能倒下！(Campus & Home Life: English Quest)</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Web Fonts -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>校園生活大冒險：今天也不能倒下！(English Life Quest)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Fredoka:wght@500;600;700&family=Mali:wght@500;700&family=Orbitron:wght@600;800&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
-    /* Theme specific typography */
-    body.theme-pixel {
-      font-family: 'DotGothic16', 'Noto Sans TC', monospace;
-      --accent: #f59e0b;
-      --panel-bg: #141724;
-      --border-color: #4338ca;
-    }
-    body.theme-storybook {
-      font-family: 'Mali', 'Noto Sans TC', cursive;
-      --accent: #f472b6;
-      --panel-bg: #291b25;
-      --border-color: #f472b6;
-    }
-    body.theme-anime {
-      font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
-      --accent: #38bdf8;
-      --panel-bg: #0f172a;
-      --border-color: #38bdf8;
-    }
-    body.theme-cyber {
-      font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
-      --accent: #00f3ff;
-      --panel-bg: #050b14;
-      --border-color: #00f3ff;
+    :root {
+      --bg-dark: #10151d;
+      --panel-bg: rgba(22, 29, 41, 0.95);
+      --border-color: #3b4d66;
+      --gold: #f6c85f;
+      --green: #48bb78;
+      --red: #f56565;
+      --blue: #4299e1;
+      --purple: #9f7aea;
+      --pink-capsule: #d53f8c;
+      --text-main: #f7fafc;
+      --text-sub: #a0aec0;
+      --active-word: #ecc94b;
     }
 
-    /* Microphone pulse glow */
-    @keyframes micPulse {
-      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-      70% { transform: scale(1.05); box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); }
-      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
-    .mic-live {
-      animation: micPulse 1.3s infinite ease-out;
-      background-color: #dc2626 !important;
-      border-color: #fca5a5 !important;
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      margin: 0;
+      padding: 0;
     }
 
-    /* Float text animation */
-    @keyframes floatUp {
-      0% { transform: translateY(0); opacity: 1; }
-      100% { transform: translateY(-45px); opacity: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Noto Sans TC', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 8px;
     }
-    .anim-float {
-      animation: floatUp 1.3s forwards ease-out;
+
+    .pixel-font { font-family: 'Press Start 2P', monospace; }
+
+    #game-container {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* 頂部狀態列 */
+    header {
+      background: var(--panel-bg);
+      border: 3px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .stat-pill {
+      background: rgba(0, 0, 0, 0.45);
+      padding: 5px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .hp-bar-bg {
+      width: 100px;
+      height: 12px;
+      background: #2d3748;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #718096;
+    }
+
+    .hp-bar-fill {
+      height: 100%;
+      width: 85%;
+      background: linear-gradient(90deg, #e53e3e, #ecc94b, #38a169);
+      transition: width 0.3s ease;
+    }
+
+    /* 風格切換快捷列 */
+    .style-bar {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      background: rgba(0,0,0,0.3);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .btn-style {
+      background: #253346;
+      border: 1px solid #4a5d78;
+      color: #cbd5e0;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-style.active {
+      background: var(--gold);
+      color: #1a202c;
+      border-color: #fff;
+    }
+
+    /* 畫布視窗 */
+    #canvas-box {
+      position: relative;
+      width: 100%;
+      background: #000;
+      border: 3px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    .scene-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 2px solid var(--gold);
+      color: var(--gold);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    .char-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid #a0aec0;
+      color: #e2e8f0;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    /* 場景切換列 */
+    .map-nav {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .nav-btn {
+      background: #1f2b3a;
+      color: #e2e8f0;
+      border: 2px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      white-space: nowrap;
+      transition: 0.15s;
+    }
+    .nav-btn:hover { background: #2f4055; }
+    .nav-btn.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: #90cdf4;
+    }
+
+    /* 背包快捷列 */
+    .inventory-bar {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px dashed #4a5d78;
+      border-radius: 6px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow-x: auto;
+    }
+
+    .item-chip {
+      background: #232f40;
+      border: 1px solid #4a5d78;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      gap: 6px;
+      white-space: nowrap;
+      transition: 0.15s;
+    }
+    .item-chip:hover {
+      background: #32435b;
+      border-color: var(--gold);
+      transform: scale(1.03);
+    }
+
+    /* 核心事件與互動主面板 */
+    .main-panel {
+      background: var(--panel-bg);
+      border: 3px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* 截圖復刻對話卡片 */
+    .retro-dialogue-card {
+      background: #141b24;
+      border: 2px solid #2d3748;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .retro-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .retro-speaker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--gold);
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .retro-tag-capsule {
+      background: var(--pink-capsule);
+      color: #fff;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 3px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 單字晶片互動區 */
+    .words-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .word-btn {
+      background: #243244;
+      border: 1.5px solid #4a5d78;
+      color: #fff;
+      padding: 5px 9px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+    .word-btn:hover {
+      background: #354a66;
+      border-color: var(--gold);
+      transform: translateY(-2px);
+    }
+    .word-btn.highlight {
+      background: var(--active-word);
+      color: #1a202c;
+      border-color: #fff;
+      transform: scale(1.1);
+      box-shadow: 0 0 10px var(--gold);
+    }
+
+    .translation-line {
+      font-size: 13px;
+      color: #cbd5e0;
+      padding-left: 2px;
+    }
+
+    /* 輔助操作按鈕 */
+    .sub-action-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .pill-btn {
+      background: #2b394d;
+      color: #e2e8f0;
+      border: 1px solid #4a5d78;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pill-btn:hover { background: #3c4f68; color: #fff; }
+    .pill-btn.recording {
+      background: var(--red);
+      animation: pulse 1s infinite;
+    }
+
+    /* 即時單字小辭典卡 */
+    .word-dict-bubble {
+      background: #1c2635;
+      border-left: 4px solid var(--gold);
+      padding: 8px 12px;
+      border-radius: 0 6px 6px 0;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    /* 回應操作區 (玩家開口說) */
+    .response-card {
+      background: #182230;
+      border: 2px dashed #4299e1;
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .action-btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-act {
+      flex: 1;
+      min-width: 140px;
+      padding: 9px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: white;
+    }
+    .btn-mic { background: #dd6b20; }
+    .btn-mic:hover { background: #c05621; }
+    .btn-tap { background: #38a169; }
+    .btn-tap:hover { background: #2f855a; }
+
+    /* 回饋通知條 */
+    .feedback-banner {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      display: none;
+    }
+    .feedback-banner.success {
+      background: rgba(72, 187, 120, 0.2);
+      border: 1px solid var(--green);
+      color: #9ae6b4;
+    }
+    .feedback-banner.warn {
+      background: rgba(245, 101, 101, 0.2);
+      border: 1px solid var(--red);
+      color: #feb2b2;
+    }
+
+    /* 角色更換與商店 Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 16px;
+      visibility: hidden;
+      opacity: 0;
+      transition: 0.2s;
+    }
+    .modal-overlay.open { visibility: visible; opacity: 1; }
+
+    .modal-box {
+      background: #1a222e;
+      border: 3px solid var(--gold);
+      border-radius: 10px;
+      width: 100%;
+      max-width: 520px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .char-card {
+      background: #232c3b;
+      border: 2px solid #3d4f66;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .char-card:hover { border-color: var(--gold); }
+    .char-card.selected { border-color: var(--gold); background: #2a374a; }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.97); opacity: 0.8; }
+      100% { transform: scale(1); }
     }
   </style>
 </head>
-<body class="theme-pixel bg-[#0b0e17] text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-amber-500 selection:text-black">
+<body>
 
-  <!-- Celebration Confetti Layer -->
-  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
-
-  <!-- TOP HUD BAR -->
-  <header class="w-full bg-[#131929]/95 backdrop-blur border-b-2 border-slate-700/80 px-3 py-2 sticky top-0 z-40 shadow-xl">
-    <div class="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-2">
-      
-      <!-- Brand & Time Info -->
-      <div class="flex items-center space-x-3">
-        <span class="text-2xl filter drop-shadow">🎒</span>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-sm md:text-base font-extrabold text-amber-300">今天也不能倒下！</h1>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-900/90 text-indigo-200 border border-indigo-500">國小 3-5 年級校園與生活</span>
-          </div>
-          <div class="text-[11px] text-slate-300 flex items-center gap-2 mt-0.5">
-            <span>⏰ <strong id="clock-display" class="text-yellow-400 font-mono">08:30 AM</strong></span>
-            <span>•</span>
-            <span id="period-display" class="text-emerald-400 font-bold">晨間打掃與晨讀</span>
-          </div>
-        </div>
+<div id="game-container">
+  <!-- 狀態列 -->
+  <header>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <span class="pixel-font" style="color: var(--gold); font-size: 12px;">DAY 1</span>
+      <div class="stat-pill">
+        <span>⏰</span>
+        <b id="txt-time">10:15 AM</b>
       </div>
+    </div>
 
-      <!-- Character Status Pill & Stats -->
-      <div class="flex items-center space-x-2 md:space-x-3 text-xs flex-wrap">
-        <!-- Active Character Card -->
-        <button onclick="openRosterModal()" class="flex items-center gap-1.5 bg-[#0a0d14] hover:bg-slate-800 border border-amber-500/60 px-2.5 py-1 rounded-xl transition active:scale-95 shadow">
-          <span id="hud-char-avatar" class="text-base">🌟</span>
-          <div class="text-left leading-tight">
-            <div id="hud-char-name" class="font-bold text-amber-300 text-[11px]">小森老師</div>
-            <div id="hud-char-trait" class="text-[9px] text-emerald-400">口說點數+1</div>
-          </div>
-          <span class="text-[10px] text-slate-400">▼換</span>
-        </button>
+    <!-- 美術風格切換 -->
+    <div class="style-bar">
+      <span style="font-size: 11px; color: var(--gold);">風格:</span>
+      <button class="btn-style active" onclick="setStyle('pixel')">👾像素</button>
+      <button class="btn-style" onclick="setStyle('storybook')">🧸繪本</button>
+      <button class="btn-style" onclick="setStyle('anime')">✨動漫</button>
+      <button class="btn-style" onclick="setStyle('cyber')">🚀賽博</button>
+    </div>
 
-        <!-- Stamina (HP) -->
-        <div class="flex items-center space-x-1.5 bg-[#0a0d14] px-2.5 py-1 rounded-xl border border-slate-700">
-          <span class="text-sm">⚡</span>
-          <span class="text-slate-400 text-[11px]">體力:</span>
-          <div class="w-16 md:w-20 bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-600">
-            <div id="hp-bar" class="h-full bg-gradient-to-r from-red-500 via-amber-400 to-emerald-400 transition-all duration-300" style="width: 85%;"></div>
-          </div>
-          <span id="hp-val" class="text-slate-200 font-bold text-[11px]">85%</span>
-        </div>
-
-        <!-- Oral Points (Stars) -->
-        <div class="flex items-center space-x-1 bg-[#0a0d14] px-2.5 py-1 rounded-xl border border-amber-500/50">
-          <span class="text-yellow-400">⭐</span>
-          <span id="stat-points" class="text-yellow-300 font-bold">4</span>
-          <span class="text-[10px] text-yellow-500 font-semibold">pts</span>
-        </div>
-
-        <!-- Shop Button -->
-        <button onclick="openShopModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1 rounded-xl text-xs shadow flex items-center gap-1 transition active:scale-95">
-          <span>🏪</span>
-          <span>小舖</span>
-        </button>
-
-        <!-- Audio mute/unmute -->
-        <button id="btn-sound-toggle" class="p-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl text-xs" title="音效開關">
-          🔊
-        </button>
+    <!-- 體力與點數 -->
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <div class="stat-pill">
+        <span>⚡ 體力</span>
+        <div class="hp-bar-bg"><div id="hp-bar" class="hp-bar-fill"></div></div>
+        <span id="txt-hp" style="font-size: 11px;">85%</span>
       </div>
+      <div class="stat-pill">
+        <span>⭐ 點數:</span>
+        <b id="txt-points" style="color: var(--gold);">5</b>
+      </div>
+      <button class="nav-btn" onclick="openCharModal()" style="padding: 4px 8px; background: #805ad5;">🎭 換角色</button>
+      <button class="nav-btn" onclick="openShopModal()" style="padding: 4px 8px; background: #dd6b20;">🏪 小舖</button>
     </div>
   </header>
 
-  <!-- ART STYLE SELECTOR -->
-  <section class="max-w-6xl w-full mx-auto px-3 pt-2">
-    <div class="bg-[#151c2e]/90 border border-slate-700/80 rounded-xl p-2 flex items-center justify-between flex-wrap gap-2">
+  <!-- Canvas 主視窗 -->
+  <div id="canvas-box">
+    <canvas id="gameCanvas" width="640" height="360"></canvas>
+    <div id="scene-badge" class="scene-badge pixel-font">🏫 走廊教室 (Classroom)</div>
+    <div id="char-badge" class="char-badge">🧑‍🏫 小森老師 (親和力大師)</div>
+  </div>
+
+  <!-- 多場景導航 (超市、烘焙房、教室、輔導室、保健室、家) -->
+  <div class="map-nav">
+    <button class="nav-btn active" id="btn-scene-classroom" onclick="switchScene('classroom')">🏫 教室走廊</button>
+    <button class="nav-btn" id="btn-scene-supermarket" onclick="switchScene('supermarket')">🛒 陽光超市 (採買)</button>
+    <button class="nav-btn" id="btn-scene-bakery" onclick="switchScene('bakery')">🧁 烘焙坊 (做餅乾)</button>
+    <button class="nav-btn" id="btn-scene-office" onclick="switchScene('office')">🏢 輔導諮商室</button>
+    <button class="nav-btn" id="btn-scene-clinic" onclick="switchScene('clinic')">🏥 學校保健室</button>
+    <button class="nav-btn" id="btn-scene-home" onclick="switchScene('home')">🏡 溫馨的家</button>
+  </div>
+
+  <!-- 背包急救與甜點欄 -->
+  <div class="inventory-bar">
+    <span style="font-size:
