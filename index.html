@@ -1,16 +1,17 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>校園生活大冒險：今天也不能倒下！(English Life Quest)</title>
+  <title>校園生活大冒險：今天也不能倒下！(English Quest)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #10151d;
-      --panel-bg: rgba(22, 29, 41, 0.95);
+      --bg-dark: #0f141c;
+      --panel-bg: rgba(20, 27, 38, 0.96);
       --border-color: #3b4d66;
       --gold: #f6c85f;
       --green: #48bb78;
@@ -39,7 +40,7 @@
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      padding: 8px;
+      padding: 10px;
     }
 
     .pixel-font { font-family: 'Press Start 2P', monospace; }
@@ -49,7 +50,7 @@
       max-width: 960px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
     /* 頂部狀態列 */
@@ -68,7 +69,7 @@
 
     .stat-pill {
       background: rgba(0, 0, 0, 0.45);
-      padding: 5px 10px;
+      padding: 5px 12px;
       border-radius: 20px;
       border: 1px solid rgba(255,255,255,0.1);
       display: flex;
@@ -93,7 +94,6 @@
       transition: width 0.3s ease;
     }
 
-    /* 風格切換快捷列 */
     .style-bar {
       display: flex;
       gap: 6px;
@@ -119,11 +119,11 @@
       border-color: #fff;
     }
 
-    /* 畫布視窗 */
+    /* Canvas 容器 */
     #canvas-box {
       position: relative;
       width: 100%;
-      background: #000;
+      background: #111;
       border: 3px solid var(--border-color);
       border-radius: 8px;
       overflow: hidden;
@@ -145,7 +145,7 @@
       background: rgba(0, 0, 0, 0.75);
       border: 2px solid var(--gold);
       color: var(--gold);
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 4px;
       font-size: 12px;
       pointer-events: none;
@@ -158,12 +158,13 @@
       background: rgba(0, 0, 0, 0.75);
       border: 1px solid #a0aec0;
       color: #e2e8f0;
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 4px;
-      font-size: 11px;
+      font-size: 12px;
+      pointer-events: none;
     }
 
-    /* 場景切換列 */
+    /* 場景導航列 */
     .map-nav {
       display: flex;
       gap: 6px;
@@ -175,11 +176,11 @@
       background: #1f2b3a;
       color: #e2e8f0;
       border: 2px solid var(--border-color);
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: 6px;
       cursor: pointer;
       font-weight: bold;
-      font-size: 12px;
+      font-size: 13px;
       white-space: nowrap;
       transition: 0.15s;
     }
@@ -190,12 +191,12 @@
       border-color: #90cdf4;
     }
 
-    /* 背包快捷列 */
+    /* 隨身背包 */
     .inventory-bar {
       background: rgba(0, 0, 0, 0.4);
       border: 1px dashed #4a5d78;
       border-radius: 6px;
-      padding: 6px 12px;
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -205,7 +206,7 @@
     .item-chip {
       background: #232f40;
       border: 1px solid #4a5d78;
-      padding: 4px 8px;
+      padding: 5px 10px;
       border-radius: 6px;
       font-size: 12px;
       cursor: pointer;
@@ -220,18 +221,17 @@
       transform: scale(1.03);
     }
 
-    /* 核心事件與互動主面板 */
+    /* 互動主面板 */
     .main-panel {
       background: var(--panel-bg);
       border: 3px solid var(--border-color);
       border-radius: 8px;
-      padding: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
-    /* 截圖復刻對話卡片 */
     .retro-dialogue-card {
       background: #141b24;
       border: 2px solid #2d3748;
@@ -271,7 +271,6 @@
       gap: 4px;
     }
 
-    /* 單字晶片互動區 */
     .words-container {
       display: flex;
       flex-wrap: wrap;
@@ -284,7 +283,7 @@
       background: #243244;
       border: 1.5px solid #4a5d78;
       color: #fff;
-      padding: 5px 9px;
+      padding: 5px 10px;
       border-radius: 6px;
       font-size: 15px;
       font-weight: 700;
@@ -310,7 +309,6 @@
       padding-left: 2px;
     }
 
-    /* 輔助操作按鈕 */
     .sub-action-bar {
       display: flex;
       gap: 8px;
@@ -323,13 +321,14 @@
       color: #e2e8f0;
       border: 1px solid #4a5d78;
       border-radius: 20px;
-      padding: 4px 10px;
+      padding: 5px 12px;
       font-size: 12px;
       cursor: pointer;
       font-weight: bold;
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      transition: 0.15s;
     }
     .pill-btn:hover { background: #3c4f68; color: #fff; }
     .pill-btn.recording {
@@ -337,7 +336,6 @@
       animation: pulse 1s infinite;
     }
 
-    /* 即時單字小辭典卡 */
     .word-dict-bubble {
       background: #1c2635;
       border-left: 4px solid var(--gold);
@@ -350,12 +348,11 @@
       gap: 8px;
     }
 
-    /* 回應操作區 (玩家開口說) */
     .response-card {
       background: #182230;
       border: 2px dashed #4299e1;
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -370,7 +367,7 @@
     .btn-act {
       flex: 1;
       min-width: 140px;
-      padding: 9px;
+      padding: 10px;
       border: none;
       border-radius: 6px;
       font-weight: bold;
@@ -387,9 +384,8 @@
     .btn-tap { background: #38a169; }
     .btn-tap:hover { background: #2f855a; }
 
-    /* 回饋通知條 */
     .feedback-banner {
-      padding: 8px 12px;
+      padding: 10px 14px;
       border-radius: 6px;
       font-size: 13px;
       font-weight: bold;
@@ -406,7 +402,7 @@
       color: #feb2b2;
     }
 
-    /* 角色更換與商店 Modal */
+    /* Modal 視窗 */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -440,7 +436,7 @@
       background: #232c3b;
       border: 2px solid #3d4f66;
       border-radius: 8px;
-      padding: 10px;
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -472,10 +468,10 @@
     <!-- 美術風格切換 -->
     <div class="style-bar">
       <span style="font-size: 11px; color: var(--gold);">風格:</span>
-      <button class="btn-style active" onclick="setStyle('pixel')">👾像素</button>
-      <button class="btn-style" onclick="setStyle('storybook')">🧸繪本</button>
-      <button class="btn-style" onclick="setStyle('anime')">✨動漫</button>
-      <button class="btn-style" onclick="setStyle('cyber')">🚀賽博</button>
+      <button class="btn-style active" id="style-pixel" onclick="setStyle('pixel')">👾像素</button>
+      <button class="btn-style" id="style-storybook" onclick="setStyle('storybook')">🧸繪本</button>
+      <button class="btn-style" id="style-anime" onclick="setStyle('anime')">✨動漫</button>
+      <button class="btn-style" id="style-cyber" onclick="setStyle('cyber')">🚀賽博</button>
     </div>
 
     <!-- 體力與點數 -->
@@ -497,7 +493,7 @@
   <!-- Canvas 主視窗 -->
   <div id="canvas-box">
     <canvas id="gameCanvas" width="640" height="360"></canvas>
-    <div id="scene-badge" class="scene-badge pixel-font">🏫 走廊教室 (Classroom)</div>
+    <div id="scene-badge" class="scene-badge pixel-font">🏫 教室走廊 (Classroom)</div>
     <div id="char-badge" class="char-badge">🧑‍🏫 小森老師 (親和力大師)</div>
   </div>
 
@@ -606,7 +602,7 @@
 
 <script>
 /* ========================================================
-   1. 遊戲資料庫 (角色、場景任務、烘焙與超市)
+   1. 遊戲資料架構
 ======================================================== */
 const characters = [
   { id: 'sam', name: '小森老師 (Teacher Sam)', tag: '輔導主任', perk: '口說集點 ⭐ +1', avatar: '🧑‍🏫', color: '#4299e1' },
@@ -693,10 +689,9 @@ const quests = [
   }
 ];
 
-// 單字辭典小資料庫 (國小 3-5 年級高頻詞彙)
 const dictionary = {
   "teacher": { ipa: "/ˈtiː.tʃər/", zh: "[名詞] 老師" },
-  "lost": { ipa: "/lɒst/", zh: "[動詞] 弄丟了 (lose過去式)" },
+  "lost": { ipa: "/lɒst/", zh: "[動詞] 弄丟了 (lose 過去式)" },
   "pencil": { ipa: "/ˈpen.səl/", zh: "[名詞] 鉛筆" },
   "case": { ipa: "/keɪs/", zh: "[名詞] 盒子 / 盒袋" },
   "should": { ipa: "/ʃʊd/", zh: "[助動詞] 應該 / 該如何" },
@@ -719,10 +714,9 @@ const dictionary = {
   "wonderful": { ipa: "/ˈwʌn.də.fəl/", zh: "[形容詞] 極好的 / 精彩的" }
 };
 
-/* 遊戲狀態 */
 const state = {
   currentChar: characters[0],
-  currentStyle: 'pixel', // pixel, storybook, anime, cyber
+  currentStyle: 'pixel',
   currentScene: 'classroom',
   hp: 85,
   maxHp: 100,
@@ -738,15 +732,15 @@ const state = {
 };
 
 /* ========================================================
-   2. Canvas 多風格繪圖引擎 (像素 / 繪本 / 動漫 / 賽博)
+   2. Canvas 繪圖引擎 (保證百分之百渲染)
 ======================================================== */
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 function renderSceneCanvas() {
+  if (!ctx) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // 背景地圖渲染
   if (state.currentStyle === 'pixel') {
     drawPixelStyle();
   } else if (state.currentStyle === 'storybook') {
@@ -757,92 +751,83 @@ function renderSceneCanvas() {
     drawCyberStyle();
   }
 
-  // 繪製主角在畫面中央
   drawCharacterAvatar();
 }
 
-/* 1. 復古像素風 */
 function drawPixelStyle() {
   if (state.currentScene === 'supermarket') {
-    // 超市走道
+    // 超市
     ctx.fillStyle = '#cbd5e0'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#4a5568'; ctx.fillRect(40, 60, 160, 240); // 貨架A
-    ctx.fillStyle = '#4a5568'; ctx.fillRect(440, 60, 160, 240); // 貨架B
-    // 商品色塊
-    ctx.fillStyle = '#e53e3e'; ctx.fillRect(60, 80, 120, 20);
-    ctx.fillStyle = '#f6e05e'; ctx.fillRect(60, 120, 120, 20);
-    ctx.fillStyle = '#48bb78'; ctx.fillRect(460, 80, 120, 20);
-    ctx.fillStyle = '#ed8936'; ctx.fillRect(460, 140, 120, 20);
+    ctx.fillStyle = '#4a5568'; ctx.fillRect(30, 40, 160, 260);
+    ctx.fillStyle = '#4a5568'; ctx.fillRect(450, 40, 160, 260);
+    ctx.fillStyle = '#e53e3e'; ctx.fillRect(50, 60, 120, 20);
+    ctx.fillStyle = '#f6e05e'; ctx.fillRect(50, 100, 120, 20);
+    ctx.fillStyle = '#48bb78'; ctx.fillRect(470, 60, 120, 20);
+    ctx.fillStyle = '#ed8936'; ctx.fillRect(470, 120, 120, 20);
   } else if (state.currentScene === 'bakery') {
-    // 烘焙廚房 (磁磚與烤箱)
-    ctx.fillStyle = '#f7fafc'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // 棋盤格
+    // 烘焙手作坊
+    ctx.fillStyle = '#edf2f7'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     for(let x=0; x<canvas.width; x+=32) {
       for(let y=0; y<canvas.height; y+=32) {
-        if((x+y)%64 === 0) { ctx.fillStyle = '#edf2f7'; ctx.fillRect(x, y, 32, 32); }
+        if((x+y)%64 === 0) { ctx.fillStyle = '#e2e8f0'; ctx.fillRect(x, y, 32, 32); }
       }
     }
-    // 烘焙大烤箱
-    ctx.fillStyle = '#2d3748'; ctx.fillRect(450, 100, 140, 180);
-    ctx.fillStyle = '#dd6b20'; ctx.fillRect(470, 140, 100, 90); // 溫暖烤箱火光
-    // 揉麵大料理台
-    ctx.fillStyle = '#b7791f'; ctx.fillRect(60, 180, 220, 90);
-    ctx.fillStyle = '#fff'; ctx.fillRect(100, 195, 45, 20); // 麵粉堆
+    ctx.fillStyle = '#2d3748'; ctx.fillRect(440, 80, 160, 200);
+    ctx.fillStyle = '#dd6b20'; ctx.fillRect(460, 120, 120, 100); // 烤箱火光
+    ctx.fillStyle = '#b7791f'; ctx.fillRect(50, 170, 220, 110);  // 料理台
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(90, 190, 45, 20);    // 麵粉堆
   } else if (state.currentScene === 'home') {
-    // 溫暖木質與地毯
+    // 溫馨的家
     ctx.fillStyle = '#b77943'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#9b2c2c'; ctx.fillRect(160, 160, 320, 140); // 暖紅大沙發
-    ctx.fillStyle = '#742a2a'; ctx.fillRect(250, 40, 140, 70);   // 壁爐
+    ctx.fillStyle = '#9b2c2c'; ctx.fillRect(160, 160, 320, 140); // 沙發
+    ctx.fillStyle = '#742a2a'; ctx.fillRect(250, 30, 140, 80);   // 壁爐
+    ctx.fillStyle = '#f6ad55'; ctx.fillRect(290, 65, 60, 40);    // 火焰
+  } else if (state.currentScene === 'clinic') {
+    // 保健室
+    ctx.fillStyle = '#e6fffa'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#319795'; ctx.fillRect(0, 0, canvas.width, 70);
+    ctx.fillStyle = '#e53e3e'; ctx.fillRect(310, 15, 20, 40); ctx.fillRect(300, 25, 40, 20); // 紅十字
+    ctx.fillStyle = '#cbd5e0'; ctx.fillRect(60, 150, 140, 160); // 病床
   } else {
-    // 預設教室與輔導室 (木紋與黑板)
+    // 教室走廊 / 輔導室
     ctx.fillStyle = '#9c5f2b'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#22543d'; ctx.fillRect(180, 20, 280, 80);  // 綠黑板
-    ctx.fillStyle = '#4a5568'; ctx.fillRect(60, 160, 130, 90);   // 課桌
-    ctx.fillStyle = '#4a5568'; ctx.fillRect(450, 160, 130, 90);  // 課桌
+    ctx.fillStyle = '#22543d'; ctx.fillRect(170, 20, 300, 80); // 黑板
+    ctx.fillStyle = '#4a5568'; ctx.fillRect(50, 160, 130, 90);
+    ctx.fillStyle = '#4a5568'; ctx.fillRect(460, 160, 130, 90);
   }
 }
 
-/* 2. 暖心手繪繪本風 */
 function drawStorybookStyle() {
   ctx.fillStyle = '#fefcbf'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  // 水彩漸層光暈
-  let grad = ctx.createRadialGradient(320, 180, 30, 320, 180, 300);
+  let grad = ctx.createRadialGradient(320, 180, 20, 320, 180, 280);
   grad.addColorStop(0, 'rgba(255, 245, 245, 0.9)');
-  grad.addColorStop(1, 'rgba(254, 215, 226, 0.7)');
+  grad.addColorStop(1, 'rgba(254, 215, 226, 0.6)');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 柔和圓角傢俱與漂浮雲朵
   ctx.fillStyle = '#f6ad55';
   ctx.beginPath();
-  ctx.arc(120, 200, 60, 0, Math.PI * 2);
-  ctx.arc(520, 200, 60, 0, Math.PI * 2);
+  ctx.arc(100, 200, 60, 0, Math.PI * 2);
+  ctx.arc(540, 200, 60, 0, Math.PI * 2);
   ctx.fill();
 }
 
-/* 3. 日系扁平動漫風 */
 function drawAnimeStyle() {
   ctx.fillStyle = '#ebf8ff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  // 窗戶透射晨光
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
   ctx.beginPath();
-  ctx.moveTo(80, 0); ctx.lineTo(240, 0); ctx.lineTo(380, 360); ctx.lineTo(160, 360);
+  ctx.moveTo(90, 0); ctx.lineTo(250, 0); ctx.lineTo(390, 360); ctx.lineTo(170, 360);
   ctx.fill();
-  // 現代簡約辦公桌
   ctx.fillStyle = '#2b6cb0'; ctx.fillRect(180, 220, 280, 70);
-  ctx.fillStyle = '#e2e8f0'; ctx.fillRect(200, 200, 50, 20); // 筆電
 }
 
-/* 4. 賽博科技風 */
 function drawCyberStyle() {
   ctx.fillStyle = '#0a0f1d'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  // 霓虹網格線條
   ctx.strokeStyle = '#00f2fe';
   ctx.lineWidth = 1;
   for(let y=180; y<canvas.height; y+=25) {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
   }
-  // 全息光圈
   ctx.strokeStyle = '#9f7aea';
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -850,43 +835,38 @@ function drawCyberStyle() {
   ctx.stroke();
 }
 
-/* 繪製動態主角 */
 function drawCharacterAvatar() {
   const c = state.currentChar;
   const x = 320;
   const y = 220;
 
   if (state.currentStyle === 'pixel') {
-    // 像素方塊人
     ctx.fillStyle = c.color;
-    ctx.fillRect(x - 16, y - 40, 32, 28); // 頭
+    ctx.fillRect(x - 16, y - 40, 32, 28);
     ctx.fillStyle = '#1a202c';
-    ctx.fillRect(x - 10, y - 30, 6, 6);   // 左眼
-    ctx.fillRect(x + 4, y - 30, 6, 6);    // 右眼
+    ctx.fillRect(x - 10, y - 30, 6, 6);
+    ctx.fillRect(x + 4, y - 30, 6, 6);
     ctx.fillStyle = '#e2e8f0';
-    ctx.fillRect(x - 20, y - 12, 40, 35); // 身體
+    ctx.fillRect(x - 20, y - 12, 40, 35);
     ctx.fillStyle = '#4a5568';
-    ctx.fillRect(x - 14, y + 23, 10, 18); // 腿
+    ctx.fillRect(x - 14, y + 23, 10, 18);
     ctx.fillRect(x + 4, y + 23, 10, 18);
   } else {
-    // 向量柔和圓形主角
     ctx.fillStyle = c.color;
     ctx.beginPath(); ctx.arc(x, y - 20, 22, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = '#fff';
     ctx.beginPath(); ctx.arc(x, y + 22, 28, 0, Math.PI*2); ctx.fill();
-    // 眼睛與微笑
     ctx.fillStyle = '#1a202c';
     ctx.beginPath(); ctx.arc(x - 7, y - 22, 3, 0, Math.PI*2); ctx.arc(x + 7, y - 22, 3, 0, Math.PI*2); ctx.fill();
   }
 }
 
 /* ========================================================
-   3. 雙向互動單字晶片卡 (逐字朗讀、音標辭典、卡拉OK)
+   3. 雙向對話單字晶片卡渲染
 ======================================================== */
 function renderQuestWords() {
   const q = quests[state.questIdx % quests.length];
   
-  // 更新標頭與情境卡
   document.getElementById('npc-avatar').innerText = q.avatar;
   document.getElementById('npc-title').innerText = q.speaker;
   document.getElementById('quest-tag').innerHTML = `<span>${q.tag}</span>`;
@@ -894,11 +874,10 @@ function renderQuestWords() {
   document.getElementById('player-zh-text').innerText = `(${q.playerZh})`;
   document.getElementById('reward-tag').innerText = `+${q.points} ⭐ 點數`;
 
-  // 1. 生成 NPC 逐字晶片
+  // 1. 生成 NPC 晶片
   const npcBox = document.getElementById('npc-words-box');
   npcBox.innerHTML = '';
-  const npcWords = q.npcEn.split(' ');
-  npcWords.forEach((rawWord, idx) => {
+  q.npcEn.split(' ').forEach((rawWord, idx) => {
     const cleanWord = rawWord.replace(/[^\w']/g, "").toLowerCase();
     const btn = document.createElement('button');
     btn.className = 'word-btn';
@@ -908,11 +887,10 @@ function renderQuestWords() {
     npcBox.appendChild(btn);
   });
 
-  // 2. 生成 玩家 逐字晶片
+  // 2. 生成 玩家 晶片
   const playerBox = document.getElementById('player-words-box');
   playerBox.innerHTML = '';
-  const playerWords = q.playerEn.split(' ');
-  playerWords.forEach((rawWord, idx) => {
+  q.playerEn.split(' ').forEach((rawWord, idx) => {
     const cleanWord = rawWord.replace(/[^\w']/g, "").toLowerCase();
     const btn = document.createElement('button');
     btn.className = 'word-btn';
@@ -925,7 +903,6 @@ function renderQuestWords() {
   hideFeedback();
 }
 
-/* 點擊單字發音與辭典展開 */
 function onWordClick(cleanWord, rawWord) {
   state.selectedWord = rawWord;
   speakText(rawWord, 0.85);
@@ -939,7 +916,7 @@ function onWordClick(cleanWord, rawWord) {
     document.getElementById('dict-zh').innerText = dictData.zh;
   } else {
     document.getElementById('dict-ipa').innerText = '';
-    document.getElementById('dict-zh').innerText = '[生活常見詞彙] 點擊隨時大聲朗讀！';
+    document.getElementById('dict-zh').innerText = '[日常高頻字詞] 點擊隨時大聲朗讀！';
   }
   dictBubble.style.display = 'flex';
 }
@@ -948,13 +925,11 @@ function speakCurrentWord() {
   if (state.selectedWord) speakText(state.selectedWord, 0.8);
 }
 
-/* 原生 Web Speech 朗讀引擎 */
 function speakText(text, rate = 0.85) {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-US';
-    // 若主角是酷博，語速更清晰
     utterance.rate = state.currentChar.id === 'robo' ? 0.75 : rate;
     window.speechSynthesis.speak(utterance);
   }
@@ -965,7 +940,6 @@ function speakFullSentence(target) {
   speakText(target === 'npc' ? q.npcEn : q.playerEn);
 }
 
-/* 🎵 Karaoke 逐字點讀導讀模式 */
 let karaokeTimer = null;
 function startKaraoke(target) {
   clearTimeout(karaokeTimer);
@@ -974,7 +948,6 @@ function startKaraoke(target) {
   let idx = 0;
 
   function highlightNext() {
-    // 移除前一個的高亮
     document.querySelectorAll('.word-btn').forEach(b => b.classList.remove('highlight'));
     if (idx < words.length) {
       const btn = document.getElementById(`${target}-word-${idx}`);
@@ -995,13 +968,12 @@ function startKaraoke(target) {
 }
 
 /* ========================================================
-   4. 語音辨識、跟讀集點與通關 (Web Speech API)
+   4. 語音跟讀與開口集點 (Web Speech API)
 ======================================================== */
-/* NPC 句子跟讀集點 (Shadowing) */
 function startShadowing(target) {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) {
-    alert("瀏覽器未支援語音辨識，已自動為你示範標準發音！");
+    alert("瀏覽器未授權或未支援語音辨識，為你示範標準發音！");
     speakFullSentence(target);
     return;
   }
@@ -1018,23 +990,20 @@ function startShadowing(target) {
     btn.classList.remove('recording');
     btn.innerText = "🎙️ 跟讀這句集點 (+1⭐)";
     const spoken = e.results[0][0].transcript.toLowerCase();
-    
-    // 國小生鼓勵原則：只要開口抓到 1-2 個關鍵字就通過！
     state.points += 1;
     updateUI();
-    showFeedback(`🎉 讚！跟讀挑戰成功！辨識到：「${spoken}」，額外收集到 ⭐ +1 點！`, true);
+    showFeedback(`🎉 讚！跟讀成功！辨識到：「${spoken}」，額外收集到 ⭐ +1 點！`, true);
   };
 
   rec.onerror = () => {
     btn.classList.remove('recording');
     btn.innerText = "🎙️ 跟讀這句集點 (+1⭐)";
-    showFeedback("麥克風沒收到聲音，請試著靠進麥克風大聲念出來喔！", false);
+    showFeedback("麥克風沒收到聲音，試著靠近麥克風大聲讀出來喔！", false);
   };
 
   rec.start();
 }
 
-/* 玩家麥克風開口作答 */
 function startVoiceResponse() {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) {
@@ -1045,7 +1014,7 @@ function startVoiceResponse() {
   const rec = new SpeechRec();
   rec.lang = 'en-US';
   const micBtn = document.getElementById('btn-player-mic');
-  micBtn.innerText = "🎧 聆聽你的好聲音中...";
+  micBtn.innerText = "🎧 聆聽你的發音中...";
 
   rec.onresult = (e) => {
     micBtn.innerText = "🎙️ 麥克風開口說";
@@ -1066,17 +1035,15 @@ function answerByTap() {
   passCurrentQuest("👍 認真練習！順利完成英語回應任務！");
 }
 
-/* 通關結算 (獎勵、做餅乾材料、時間推進) */
 function passCurrentQuest(msg) {
   const q = quests[state.questIdx % quests.length];
   let gainedPoints = q.points;
-  if (state.currentChar.id === 'sam') gainedPoints += 1; // 小森老師天賦
+  if (state.currentChar.id === 'sam') gainedPoints += 1;
 
   state.points += gainedPoints;
   state.hp = Math.max(15, state.hp - q.cost);
   state.timeStep++;
 
-  // 若該關卡有烘焙材料獎勵 (例如超市採買材料包、烘焙坊烤出餅乾)
   if (q.bakingReward) {
     const existing = state.inventory.find(i => i.id === q.bakingReward.id);
     if (existing) existing.count += q.bakingReward.count;
@@ -1087,12 +1054,11 @@ function passCurrentQuest(msg) {
   showFeedback(`${msg} (獲得 ⭐ +${gainedPoints} 點數)`, true);
   updateUI();
 
-  // 切換下一題
   state.questIdx++;
   setTimeout(() => {
     renderQuestWords();
     const nextQ = quests[state.questIdx % quests.length];
-    switchScene(nextQ.scene, false); // 自動帶到下一任務場景
+    switchScene(nextQ.scene, false);
   }, 1900);
 }
 
@@ -1107,7 +1073,7 @@ function hideFeedback() {
 }
 
 /* ========================================================
-   5. 場景切換、角色切換與背包系統
+   5. 場景、風格切換與背包
 ======================================================== */
 function switchScene(scId, manual = true) {
   state.currentScene = scId;
@@ -1125,13 +1091,12 @@ function switchScene(scId, manual = true) {
   const activeBtn = document.getElementById('btn-scene-' + scId);
   if (activeBtn) activeBtn.classList.add('active');
 
-  // 場景自然休息機制
   if (manual) {
     if (scId === 'home') {
       let heal = state.currentChar.id === 'mia' ? 20 : 10;
       healHP(heal, `回到溫暖的家喝熱牛奶，體力 +${heal}！`);
     } else if (scId === 'clinic') {
-      healHP(15, "在保健室稍微閉目養神，體力 +15！");
+      healHP(15, "在保健室稍微休息閉目養神，體力 +15！");
     }
   }
 
@@ -1141,11 +1106,11 @@ function switchScene(scId, manual = true) {
 function setStyle(st) {
   state.currentStyle = st;
   document.querySelectorAll('.btn-style').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+  const el = document.getElementById('style-' + st);
+  if (el) el.classList.add('active');
   renderSceneCanvas();
 }
 
-/* 背包渲染與使用物品恢復體力 */
 function renderInventory() {
   const list = document.getElementById('inv-list');
   list.innerHTML = '';
@@ -1166,7 +1131,7 @@ function useItem(idx) {
   item.count--;
   
   let healVal = item.heal;
-  if (state.currentChar.id === 'ellie') healVal = Math.round(healVal * 1.3); // 小艾天賦
+  if (state.currentChar.id === 'ellie') healVal = Math.round(healVal * 1.3);
 
   healHP(healVal, `吃了【${item.name}】！體力恢復 +${healVal} 點！`);
 }
@@ -1189,7 +1154,7 @@ function updateUI() {
 }
 
 /* ========================================================
-   6. 角色選擇與商店 Modal 模組
+   6. 角色切換與商店 Modal
 ======================================================== */
 function openCharModal() {
   const roster = document.getElementById('char-roster');
@@ -1252,12 +1217,13 @@ function buyShopItem(id, cost) {
   updateUI();
 }
 
-/* 初始化遊戲 */
-window.onload = () => {
+// 啟動入口
+window.addEventListener('DOMContentLoaded', () => {
   renderQuestWords();
   updateUI();
-};
+});
 </script>
 
 </body>
 </html>
+
